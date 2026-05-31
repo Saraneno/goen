@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GOEN 管理画面</title>
+<style>
+  :root {
+    --pink:#FF3CAC; --purple:#784BFF; --cyan:#00F5FF;
+    --grad:linear-gradient(135deg,#FF3CAC,#784BFF,#00F5FF);
+    --bg:#080808; --bg2:#0F0F0F; --bg3:#161616;
+    --text:#F0F0F0; --muted:#666; --border:rgba(255,255,255,0.08);
+    --green:#00FF88; --red:#FF4444; --yellow:#FFB800;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,sans-serif;font-size:14px;min-height:100vh;}
+
+  /* SIDEBAR */
+  .layout{display:flex;min-height:100vh;}
+  .sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--border);padding:24px 0;flex-shrink:0;position:fixed;top:0;left:0;bottom:0;overflow-y:auto;}
+  .sidebar-logo{display:flex;align-items:center;gap:10px;padding:0 20px 24px;border-bottom:1px solid var(--border);margin-bottom:16px;}
+  .logo-text{font-size:20px;font-weight:900;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  .logo-badge{font-size:10px;background:var(--pink);color:#fff;padding:2px 6px;border-radius:4px;font-weight:700;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:11px 20px;cursor:pointer;color:var(--muted);transition:all .2s;font-size:13px;}
+  .nav-item:hover,.nav-item.active{color:var(--text);background:rgba(255,255,255,0.04);}
+  .nav-item.active{border-left:2px solid var(--pink);}
+  .nav-icon{font-size:16px;width:20px;text-align:center;}
+
+  /* MAIN */
+  .main{margin-left:220px;flex:1;padding:28px;}
+
+  /* HEADER */
+  .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
+  .page-title{font-size:22px;font-weight:700;}
+  .header-meta{font-size:12px;color:var(--muted);}
+
+  /* STATS */
+  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px;}
+  .stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px;}
+  .stat-label{font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;}
+  .stat-value{font-size:30px;font-weight:800;line-height:1;}
+  .stat-value.pink{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  .stat-sub{font-size:11px;color:var(--muted);margin-top:6px;}
+
+  /* TABLE */
+  .section{background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:20px;}
+  .section-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);}
+  .section-title{font-weight:700;font-size:14px;}
+  .section-actions{display:flex;gap:8px;}
+  table{width:100%;border-collapse:collapse;}
+  th{text-align:left;padding:10px 16px;font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid var(--border);background:rgba(255,255,255,.02);}
+  td{padding:13px 16px;border-bottom:1px solid var(--border);vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:rgba(255,255,255,.02);}
+
+  /* BADGES */
+  .badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:100px;}
+  .badge-open{background:rgba(0,255,136,.1);color:var(--green);border:1px solid rgba(0,255,136,.2);}
+  .badge-matched{background:rgba(255,184,0,.1);color:var(--yellow);border:1px solid rgba(255,184,0,.2);}
+  .badge-closed{background:rgba(255,255,255,.05);color:var(--muted);border:1px solid var(--border);}
+  .badge-male{background:rgba(0,245,255,.1);color:var(--cyan);}
+  .badge-female{background:rgba(255,60,172,.1);color:var(--pink);}
+  .badge-dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+
+  /* BUTTONS */
+  .btn{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:6px 14px;border-radius:8px;border:none;cursor:pointer;transition:all .2s;text-decoration:none;}
+  .btn-primary{background:var(--grad);color:#fff;}
+  .btn-primary:hover{opacity:.85;}
+  .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted);}
+  .btn-ghost:hover{border-color:var(--pink);color:var(--pink);}
+  .btn-danger{background:rgba(255,68,68,.1);border:1px solid rgba(255,68,68,.2);color:var(--red);}
+  .btn-danger:hover{background:rgba(255,68,68,.2);}
+  .btn-match{background:rgba(0,255,136,.1);border:1px solid rgba(0,255,136,.2);color:var(--green);}
+
+  /* FILTER */
+  .filter-bar{display:flex;gap:8px;padding:14px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+  .filter-btn{font-size:12px;padding:5px 12px;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .2s;}
+  .filter-btn.active{border-color:var(--pink);color:var(--pink);background:rgba(255,60,172,.08);}
+
+  /* MODAL */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:28px;width:90%;max-width:480px;max-height:80vh;overflow-y:auto;}
+  .modal-title{font-size:18px;font-weight:700;margin-bottom:20px;}
+  .form-group{margin-bottom:16px;}
+  .form-label{font-size:12px;color:var(--muted);margin-bottom:6px;display:block;}
+  .form-input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:14px;outline:none;}
+  .form-input:focus{border-color:var(--pink);}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
+
+  /* USER AVATAR */
+  .user-cell{display:flex;align-items:center;gap:10px;}
+  .avatar{width:32px;height:32px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+
+  /* TABS */
+  .tabs{display:flex;gap:0;border-bottom:1px solid var(--border);}
+  .tab{padding:12px 20px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;}
+  .tab.active{color:var(--text);border-bottom-color:var(--pink);}
+
+  /* EMPTY */
+  .empty{text-align:center;padding:48px;color:var(--muted);}
+  .empty-icon{font-size:40px;margin-bottom:12px;}
+
+  /* NOTIFICATION */
+  .notif{position:fixed;top:20px;right:20px;background:var(--bg2);border:1px solid var(--green);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--green);z-index:200;transform:translateX(200%);transition:transform .3s;}
+  .notif.show{transform:translateX(0);}
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-text">GOEN</div>
+      <div class="logo-badge">ADMIN</div>
+    </div>
+    <div class="nav-item active" onclick="showTab('posts')">
+      <span class="nav-icon">🍺</span> 募集一覧
+    </div>
+    <div class="nav-item" onclick="showTab('users')">
+      <span class="nav-icon">👥</span> ユーザー管理
+    </div>
+    <div class="nav-item" onclick="showTab('matches')">
+      <span class="nav-icon">✨</span> マッチング
+    </div>
+    <div class="nav-item" onclick="showTab('reports')">
+      <span class="nav-icon">🚨</span> 通報管理
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <!-- HEADER -->
+    <div class="page-header">
+      <div class="page-title" id="pageTitle">募集一覧</div>
+      <div class="header-meta" id="lastUpdated">最終更新: 読み込み中...</div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">本日の募集</div>
+        <div class="stat-value pink" id="statPosts">0</div>
+        <div class="stat-sub">件</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">マッチング成立</div>
+        <div class="stat-value pink" id="statMatches">0</div>
+        <div class="stat-sub">件</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">登録ユーザー</div>
+        <div class="stat-value pink" id="statUsers">0</div>
+        <div class="stat-sub">人</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">未解決通報</div>
+        <div class="stat-value pink" id="statReports">0</div>
+        <div class="stat-sub">件</div>
+      </div>
+    </div>
+
+    <!-- POSTS TAB -->
+    <div id="tab-posts" class="tab-content">
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">募集一覧</div>
+          <div class="section-actions">
+            <button class="btn btn-ghost" onclick="loadPosts()">🔄 更新</button>
+          </div>
+        </div>
+        <div class="filter-bar">
+          <button class="filter-btn active" onclick="filterPosts('all',this)">すべて</button>
+          <button class="filter-btn" onclick="filterPosts('open',this)">募集中</button>
+          <button class="filter-btn" onclick="filterPosts('matched',this)">マッチ済</button>
+          <button class="filter-btn" onclick="filterPosts('closed',this)">終了</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>性別/年齢</th>
+              <th>エリア</th>
+              <th>時間</th>
+              <th>人数</th>
+              <th>雰囲気</th>
+              <th>ステータス</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="postsTable">
+            <tr><td colspan="8" class="empty"><div class="empty-icon">🍺</div>データを読み込み中...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- USERS TAB -->
+    <div id="tab-users" class="tab-content" style="display:none">
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">ユーザー管理</div>
+          <button class="btn btn-ghost" onclick="loadUsers()">🔄 更新</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>ユーザー</th>
+              <th>性別/年齢</th>
+              <th>登録日</th>
+              <th>投稿数</th>
+              <th>ステータス</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="usersTable">
+            <tr><td colspan="6" class="empty"><div class="empty-icon">👥</div>データを読み込み中...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- MATCHES TAB -->
+    <div id="tab-matches" class="tab-content" style="display:none">
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">マッチング管理</div>
+          <button class="btn btn-primary" onclick="openMatchModal()">➕ マッチングを作成</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>対象募集</th>
+              <th>LINEグループ</th>
+              <th>ステータス</th>
+              <th>成立日時</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="matchesTable">
+            <tr><td colspan="6" class="empty"><div class="empty-icon">✨</div>データを読み込み中...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- REPORTS TAB -->
+    <div id="tab-reports" class="tab-content" style="display:none">
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">通報管理</div>
+          <button class="btn btn-ghost" onclick="loadReports()">🔄 更新</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>通報者</th>
+              <th>対象ユーザー</th>
+              <th>理由</th>
+              <th>詳細</th>
+              <th>日時</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="reportsTable">
+            <tr><td colspan="6" class="empty"><div class="empty-icon">🚨</div>データを読み込み中...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MATCH MODAL -->
+<div class="modal-overlay" id="matchModal">
+  <div class="modal">
+    <div class="modal-title">✨ マッチングを作成</div>
+    <div class="form-group">
+      <label class="form-label">男性グループの募集ID</label>
+      <input class="form-input" id="malePostId" placeholder="例: 12">
+    </div>
+    <div class="form-group">
+      <label class="form-label">女性グループの募集ID</label>
+      <input class="form-input" id="femalePostId" placeholder="例: 15">
+    </div>
+    <div class="form-group">
+      <label class="form-label">運営メモ（任意）</label>
+      <input class="form-input" id="adminNote" placeholder="例: 雰囲気合いそう">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">キャンセル</button>
+      <button class="btn btn-primary" onclick="createMatch()">マッチングを成立させる</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICATION -->
+<div class="notif" id="notif"></div>
+
+<script>
+// ── 設定 ─────────────────────────────────────────────────
+// Supabase の設定（管理画面用）
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';     // TODO
+const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY'; // TODO
+
+// ── タブ切り替え ──────────────────────────────────────────
+const tabTitles = { posts:'募集一覧', users:'ユーザー管理', matches:'マッチング', reports:'通報管理' };
+
+function showTab(name) {
+  document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+  document.getElementById('tab-' + name).style.display = '';
+  document.getElementById('pageTitle').textContent = tabTitles[name];
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+
+  if (name === 'posts')   loadPosts();
+  if (name === 'users')   loadUsers();
+  if (name === 'matches') loadMatches();
+  if (name === 'reports') loadReports();
+}
+
+// ── Supabase fetch ────────────────────────────────────────
+async function sbFetch(path) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+    }
+  });
+  return res.json();
+}
+
+async function sbPatch(path, body) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    method: 'PATCH',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal',
+    },
+    body: JSON.stringify(body),
+  });
+  return res.ok;
+}
+
+// ── 募集一覧 ──────────────────────────────────────────────
+let allPosts = [];
+
+async function loadPosts() {
+  const data = await sbFetch('posts?select=*,users(display_name,gender,age)&order=created_at.desc&limit=50');
+  allPosts = Array.isArray(data) ? data : [];
+  renderPosts(allPosts);
+  updateStats();
+  document.getElementById('lastUpdated').textContent = `最終更新: ${new Date().toLocaleTimeString('ja-JP')}`;
+}
+
+function filterPosts(status, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const filtered = status === 'all' ? allPosts : allPosts.filter(p => p.status === status);
+  renderPosts(filtered);
+}
+
+function renderPosts(posts) {
+  const tbody = document.getElementById('postsTable');
+  if (!posts.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="empty"><div class="empty-icon">🍺</div>データなし</td></tr>';
+    return;
+  }
+  const gLabel = g => g === 'male' ? '男性' : g === 'female' ? '女性' : '-';
+  const statusBadge = s => {
+    if (s === 'open')    return '<span class="badge badge-open"><span class="badge-dot"></span>募集中</span>';
+    if (s === 'matched') return '<span class="badge badge-matched"><span class="badge-dot"></span>マッチ済</span>';
+    return '<span class="badge badge-closed">終了</span>';
+  };
+  tbody.innerHTML = posts.map(p => `
+    <tr>
+      <td>#${p.id}</td>
+      <td><span class="badge ${p.gender === 'male' ? 'badge-male' : 'badge-female'}">${gLabel(p.gender)}</span> ${p.users?.age || p.age || '-'}歳</td>
+      <td>${p.area}</td>
+      <td>${p.meet_time}</td>
+      <td>${p.num_people}人</td>
+      <td>${p.vibe || '-'}</td>
+      <td>${statusBadge(p.status)}</td>
+      <td style="display:flex;gap:6px;">
+        ${p.status === 'open' ? `<button class="btn btn-match" onclick="matchPost(${p.id})">マッチ</button>` : ''}
+        <button class="btn btn-danger" onclick="closePost(${p.id})">クローズ</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ── 投稿をクローズ ────────────────────────────────────────
+async function closePost(id) {
+  if (!confirm(`募集 #${id} をクローズしますか？`)) return;
+  const ok = await sbPatch(`posts?id=eq.${id}`, { status: 'closed' });
+  if (ok) { showNotif('クローズしました'); loadPosts(); }
+}
+
+function matchPost(id) {
+  document.getElementById('malePostId').value = id;
+  openMatchModal();
+}
+
+// ── ユーザー一覧 ──────────────────────────────────────────
+async function loadUsers() {
+  const data = await sbFetch('users?select=*&order=created_at.desc&limit=100');
+  const users = Array.isArray(data) ? data : [];
+  const tbody = document.getElementById('usersTable');
+  const gLabel = g => g === 'male' ? '<span class="badge badge-male">男性</span>' : g === 'female' ? '<span class="badge badge-female">女性</span>' : '-';
+
+  tbody.innerHTML = users.map(u => `
+    <tr>
+      <td><div class="user-cell"><div class="avatar">${(u.display_name||'?')[0]}</div>${u.display_name || '-'}</div></td>
+      <td>${gLabel(u.gender)} ${u.age || '-'}歳</td>
+      <td>${new Date(u.created_at).toLocaleDateString('ja-JP')}</td>
+      <td>-</td>
+      <td>${u.is_banned ? '<span class="badge" style="background:rgba(255,68,68,.1);color:#FF4444;">BAN</span>' : '<span class="badge badge-open">正常</span>'}</td>
+      <td>
+        ${!u.is_banned
+          ? `<button class="btn btn-danger" onclick="banUser(${u.id},'${u.display_name}')">BAN</button>`
+          : `<button class="btn btn-ghost" onclick="unbanUser(${u.id})">解除</button>`
+        }
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="6" class="empty"><div class="empty-icon">👥</div>データなし</td></tr>';
+}
+
+async function banUser(id, name) {
+  const reason = prompt(`${name} をBANする理由を入力してください`);
+  if (!reason) return;
+  await sbPatch(`users?id=eq.${id}`, { is_banned: true, ban_reason: reason });
+  showNotif(`${name} をBANしました`);
+  loadUsers();
+}
+
+async function unbanUser(id) {
+  await sbPatch(`users?id=eq.${id}`, { is_banned: false, ban_reason: null });
+  showNotif('BANを解除しました');
+  loadUsers();
+}
+
+// ── マッチング一覧 ────────────────────────────────────────
+async function loadMatches() {
+  const data = await sbFetch('matches?select=*&order=created_at.desc&limit=50');
+  const matches = Array.isArray(data) ? data : [];
+  const tbody = document.getElementById('matchesTable');
+  tbody.innerHTML = matches.map(m => `
+    <tr>
+      <td>#${m.id}</td>
+      <td>${(m.post_ids||[]).map(id=>'#'+id).join(' × ')}</td>
+      <td>${m.line_group_id || '<span style="color:var(--muted)">未設定</span>'}</td>
+      <td><span class="badge badge-open">${m.status}</span></td>
+      <td>${new Date(m.created_at).toLocaleString('ja-JP')}</td>
+      <td><button class="btn btn-ghost">詳細</button></td>
+    </tr>
+  `).join('') || '<tr><td colspan="6" class="empty"><div class="empty-icon">✨</div>データなし</td></tr>';
+}
+
+// ── 通報一覧 ──────────────────────────────────────────────
+async function loadReports() {
+  const data = await sbFetch('reports?select=*&order=created_at.desc&limit=50');
+  const reports = Array.isArray(data) ? data : [];
+  const tbody = document.getElementById('reportsTable');
+  tbody.innerHTML = reports.map(r => `
+    <tr>
+      <td>#${r.reporter_id}</td>
+      <td>#${r.reported_id}</td>
+      <td>${r.reason}</td>
+      <td>${r.detail || '-'}</td>
+      <td>${new Date(r.created_at).toLocaleDateString('ja-JP')}</td>
+      <td>
+        ${!r.is_resolved
+          ? `<button class="btn btn-ghost" onclick="resolveReport(${r.id})">解決済みに</button>`
+          : '<span style="color:var(--muted);font-size:12px;">解決済</span>'
+        }
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="6" class="empty"><div class="empty-icon">🚨</div>データなし</td></tr>';
+}
+
+async function resolveReport(id) {
+  await sbPatch(`reports?id=eq.${id}`, { is_resolved: true });
+  showNotif('解決済みにしました');
+  loadReports();
+}
+
+// ── マッチング作成 ────────────────────────────────────────
+function openMatchModal()  { document.getElementById('matchModal').classList.add('open'); }
+function closeModal()      { document.getElementById('matchModal').classList.remove('open'); }
+
+async function createMatch() {
+  const maleId   = document.getElementById('malePostId').value;
+  const femaleId = document.getElementById('femalePostId').value;
+  const note     = document.getElementById('adminNote').value;
+
+  if (!maleId || !femaleId) { alert('両方の募集IDを入力してください'); return; }
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/matches`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal',
+    },
+    body: JSON.stringify({
+      post_ids: [parseInt(maleId), parseInt(femaleId)],
+      admin_note: note,
+    }),
+  });
+
+  if (res.ok) {
+    // 両投稿をmatched状態に
+    await sbPatch(`posts?id=eq.${maleId}`,   { status: 'matched' });
+    await sbPatch(`posts?id=eq.${femaleId}`,  { status: 'matched' });
+    closeModal();
+    showNotif('🎉 マッチングを成立させました！');
+    loadMatches();
+    loadPosts();
+  }
+}
+
+// ── 統計更新 ──────────────────────────────────────────────
+function updateStats() {
+  const today = new Date().toDateString();
+  const todayPosts   = allPosts.filter(p => new Date(p.created_at).toDateString() === today).length;
+  const todayMatches = allPosts.filter(p => p.status === 'matched').length;
+  document.getElementById('statPosts').textContent   = todayPosts;
+  document.getElementById('statMatches').textContent = todayMatches;
+}
+
+// ── 通知 ──────────────────────────────────────────────────
+function showNotif(msg) {
+  const el = document.getElementById('notif');
+  el.textContent = '✅ ' + msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ── 初期ロード ────────────────────────────────────────────
+loadPosts();
+// 30秒ごとに自動更新
+setInterval(loadPosts, 30000);
+</script>
+</body>
+</html>
