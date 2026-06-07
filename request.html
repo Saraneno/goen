@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GOEN 飲みの希望を出す</title>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink:#FF3CAC; --purple:#784BFF; --cyan:#00F5FF;
+    --grad:linear-gradient(135deg,#FF3CAC,#784BFF,#00F5FF);
+    --bg:#0D0A1A; --card:rgba(255,255,255,0.05);
+    --text:#F0F0F0; --muted:#888; --border:rgba(255,255,255,0.1);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'Zen Kaku Gothic New',sans-serif;min-height:100vh;padding-bottom:100px;}
+  body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at top,rgba(120,75,255,0.2) 0%,transparent 60%),radial-gradient(ellipse at bottom right,rgba(255,60,172,0.15) 0%,transparent 60%);pointer-events:none;z-index:0;}
+
+  .header{position:sticky;top:0;z-index:10;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;background:rgba(13,10,26,0.9);backdrop-filter:blur(12px);}
+  .header-left{display:flex;align-items:center;gap:10px;}
+  .logo-circle{width:38px;height:38px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;color:#fff;}
+  .logo-name{font-size:16px;font-weight:900;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;}
+  .logo-sub{font-size:9px;letter-spacing:0.15em;color:var(--muted);}
+  .btn-header{background:var(--grad);color:#fff;font-weight:700;font-size:13px;padding:8px 18px;border-radius:100px;border:none;cursor:pointer;}
+
+  .content{padding:28px 20px;position:relative;z-index:1;}
+  .page-title{font-size:28px;font-weight:900;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px;}
+  .page-desc{font-size:14px;color:var(--muted);margin-bottom:28px;}
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px;margin-bottom:16px;backdrop-filter:blur(8px);}
+  .field-label{font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
+  .field-label .required{font-size:11px;color:var(--pink);font-weight:700;}
+  .field-label span{font-size:11px;color:var(--muted);font-weight:400;}
+
+  input[type="date"],input[type="number"],select,textarea{
+    width:100%;background:rgba(255,255,255,0.07);border:1px solid var(--border);
+    border-radius:12px;padding:14px 16px;color:var(--text);
+    font-family:'Zen Kaku Gothic New',sans-serif;font-size:15px;outline:none;
+    transition:border-color .2s;-webkit-appearance:none;
+  }
+  input:focus,select:focus{border-color:rgba(255,60,172,0.5);}
+  select option{background:#1a1030;}
+  textarea{resize:none;height:90px;}
+  input::placeholder{color:var(--muted);}
+
+  .chip-group{display:flex;flex-wrap:wrap;gap:8px;}
+  .chip{background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:100px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;color:var(--text);}
+  .chip.selected{border-color:var(--pink);background:rgba(255,60,172,0.12);color:var(--pink);}
+
+  .num-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+  .num-btn{background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:12px;padding:14px 8px;text-align:center;cursor:pointer;transition:all .2s;font-weight:700;font-size:14px;}
+  .num-btn.selected{border-color:var(--pink);background:rgba(255,60,172,0.12);color:var(--pink);}
+
+  .two-col{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;}
+  .age-sep{text-align:center;color:var(--muted);font-size:16px;}
+
+  .preview-card{background:rgba(255,60,172,0.06);border:1px solid rgba(255,60,172,0.2);border-radius:16px;padding:20px;margin-bottom:16px;display:none;}
+  .preview-title{font-size:12px;color:var(--pink);font-weight:700;letter-spacing:.08em;margin-bottom:12px;}
+  .preview-row{display:flex;justify-content:space-between;margin-bottom:8px;font-size:14px;}
+  .preview-key{color:var(--muted);}
+  .preview-val{font-weight:700;}
+
+  .btn-submit{width:100%;background:var(--grad);color:#fff;font-family:'Zen Kaku Gothic New',sans-serif;font-weight:900;font-size:17px;padding:18px;border-radius:100px;border:none;cursor:pointer;transition:opacity .2s;box-shadow:0 0 30px rgba(255,60,172,0.25);margin-top:8px;}
+  .btn-submit:hover{opacity:.88;}
+
+  .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(13,10,26,0.95);backdrop-filter:blur(12px);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(4,1fr);padding:8px 0 20px;z-index:20;}
+  .nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px;}
+  .nav-icon{font-size:20px;}
+  .nav-label{font-size:10px;color:var(--muted);}
+  .nav-item.active .nav-label{color:var(--pink);}
+
+  .success-wrap{text-align:center;padding:80px 20px;display:none;}
+  .success-icon{font-size:64px;margin-bottom:20px;}
+  .success-title{font-size:24px;font-weight:900;margin-bottom:12px;}
+  .success-desc{font-size:14px;color:var(--muted);line-height:1.8;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo-circle">G</div>
+    <div>
+      <div class="logo-name">GOEN</div>
+      <div class="logo-sub">GROUP DRINK</div>
+    </div>
+  </div>
+  <button class="btn-header">希望を出す</button>
+</div>
+
+<div id="formContent">
+<div class="content">
+  <div class="page-title">飲みの希望</div>
+  <div class="page-desc">マッチング後、LINEでご連絡します。</div>
+
+  <!-- エリア -->
+  <div class="card">
+    <div class="field-label">エリア <span class="required">必須</span></div>
+    <div class="chip-group">
+      <div class="chip" onclick="selectChip(this,'area','渋谷')">渋谷</div>
+      <div class="chip" onclick="selectChip(this,'area','新宿')">新宿</div>
+      <div class="chip" onclick="selectChip(this,'area','六本木')">六本木</div>
+      <div class="chip" onclick="selectChip(this,'area','恵比寿')">恵比寿</div>
+      <div class="chip" onclick="selectChip(this,'area','銀座')">銀座</div>
+      <div class="chip" onclick="selectChip(this,'area','池袋')">池袋</div>
+      <div class="chip" onclick="selectChip(this,'area','横浜')">横浜</div>
+    </div>
+  </div>
+
+  <!-- 希望日 -->
+  <div class="card">
+    <div class="field-label">希望日 <span class="required">必須</span></div>
+    <input type="date" id="meetDate">
+  </div>
+
+  <!-- 合流時間 -->
+  <div class="card">
+    <div class="field-label">合流希望時間 <span class="required">必須</span></div>
+    <div class="chip-group">
+      <div class="chip" onclick="selectChip(this,'meetTime','18:00〜')">18時〜</div>
+      <div class="chip" onclick="selectChip(this,'meetTime','19:00〜')">19時〜</div>
+      <div class="chip" onclick="selectChip(this,'meetTime','20:00〜')">20時〜</div>
+      <div class="chip" onclick="selectChip(this,'meetTime','21:00〜')">21時〜</div>
+      <div class="chip" onclick="selectChip(this,'meetTime','22:00〜')">22時〜</div>
+    </div>
+  </div>
+
+  <!-- 参加人数 -->
+  <div class="card">
+    <div class="field-label">参加人数（自分含む） <span class="required">必須</span></div>
+    <div class="num-grid">
+      <div class="num-btn" onclick="selectNum(this,1)">1人</div>
+      <div class="num-btn" onclick="selectNum(this,2)">2人</div>
+      <div class="num-btn" onclick="selectNum(this,3)">3人</div>
+      <div class="num-btn" onclick="selectNum(this,4)">4人〜</div>
+    </div>
+  </div>
+
+  <!-- 雰囲気 -->
+  <div class="card">
+    <div class="field-label">雰囲気 <span class="required">必須</span></div>
+    <div class="chip-group">
+      <div class="chip" onclick="selectChip(this,'vibe','ワイワイ')">🎉 ワイワイ</div>
+      <div class="chip" onclick="selectChip(this,'vibe','落ち着き')">🍷 落ち着き</div>
+      <div class="chip" onclick="selectChip(this,'vibe','どちらでも')">🍺 どちらでも</div>
+    </div>
+  </div>
+
+  <!-- 相手の希望年齢 -->
+  <div class="card">
+    <div class="field-label">相手の希望年齢 <span>任意</span></div>
+    <div class="two-col">
+      <input type="number" id="ageMin" placeholder="20" min="18" max="60">
+      <div class="age-sep">〜</div>
+      <input type="number" id="ageMax" placeholder="35" min="18" max="60">
+    </div>
+  </div>
+
+  <!-- 一言 -->
+  <div class="card">
+    <div class="field-label">一言メッセージ <span>任意</span></div>
+    <textarea id="message" placeholder="例: 仕事終わりにサクッと飲みたいです！雰囲気いい感じで◎"></textarea>
+  </div>
+
+  <!-- プレビュー -->
+  <div class="preview-card" id="previewCard">
+    <div class="preview-title">📋 募集プレビュー</div>
+    <div class="preview-row"><span class="preview-key">エリア</span><span class="preview-val" id="pArea">-</span></div>
+    <div class="preview-row"><span class="preview-key">日時</span><span class="preview-val" id="pTime">-</span></div>
+    <div class="preview-row"><span class="preview-key">人数</span><span class="preview-val" id="pNum">-</span></div>
+    <div class="preview-row"><span class="preview-key">雰囲気</span><span class="preview-val" id="pVibe">-</span></div>
+  </div>
+
+  <button class="btn-submit" onclick="submit()">この条件で希望を出す 🍺</button>
+</div>
+</div>
+
+<!-- 成功画面 -->
+<div class="success-wrap" id="successWrap">
+  <div class="success-icon">🍻</div>
+  <div class="success-title">希望を受け付けました！</div>
+  <div class="success-desc">マッチングが成立次第、<br>LINEでご連絡します。<br><br>当日のマッチングをお楽しみに！</div>
+</div>
+
+<div class="bottom-nav">
+  <div class="nav-item"><div class="nav-icon">🏠</div><div class="nav-label">ホーム</div></div>
+  <div class="nav-item active"><div class="nav-icon">✨</div><div class="nav-label">希望</div></div>
+  <div class="nav-item"><div class="nav-icon">👤</div><div class="nav-label">マイ</div></div>
+  <div class="nav-item"><div class="nav-icon">🛡</div><div class="nav-label">管理</div></div>
+</div>
+
+<script>
+const uid = new URLSearchParams(location.search).get('uid');
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const state = { area:null, meetDate:'', meetTime:null, numPeople:null, vibe:null, ageMin:'', ageMax:'', message:'' };
+
+document.getElementById('meetDate').value = new Date().toISOString().split('T')[0];
+document.getElementById('meetDate').min   = new Date().toISOString().split('T')[0];
+
+function selectChip(el, field, value) {
+  el.closest('.chip-group').querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  state[field] = value;
+  updatePreview();
+}
+
+function selectNum(el, value) {
+  document.querySelectorAll('.num-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  state.numPeople = value;
+  updatePreview();
+}
+
+function updatePreview() {
+  const date = document.getElementById('meetDate').value;
+  if (state.area && date && state.meetTime && state.numPeople && state.vibe) {
+    document.getElementById('previewCard').style.display = '';
+    document.getElementById('pArea').textContent = state.area;
+    document.getElementById('pTime').textContent = date + ' ' + state.meetTime;
+    document.getElementById('pNum').textContent  = state.numPeople + '人';
+    document.getElementById('pVibe').textContent = state.vibe;
+  }
+}
+
+document.getElementById('meetDate').addEventListener('change', updatePreview);
+
+async function submit() {
+  state.meetDate = document.getElementById('meetDate').value;
+  state.ageMin   = document.getElementById('ageMin').value;
+  state.ageMax   = document.getElementById('ageMax').value;
+  state.message  = document.getElementById('message').value;
+
+  if (!state.area)      { alert('エリアを選択してください'); return; }
+  if (!state.meetDate)  { alert('希望日を選択してください'); return; }
+  if (!state.meetTime)  { alert('合流時間を選択してください'); return; }
+  if (!state.numPeople) { alert('参加人数を選択してください'); return; }
+  if (!state.vibe)      { alert('雰囲気を選択してください'); return; }
+
+  if (uid) {
+    const userRes = await fetch(SUPABASE_URL + '/rest/v1/users?line_user_id=eq.' + uid + '&select=id', {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+    });
+    const users = await userRes.json();
+    if (!users.length) { alert('ユーザー情報が見つかりません'); return; }
+
+    const expires = new Date(state.meetDate);
+    expires.setHours(23, 59, 59);
+
+    await fetch(SUPABASE_URL + '/rest/v1/requests', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({
+        user_id: users[0].id, area: state.area, meet_date: state.meetDate,
+        meet_time: state.meetTime, num_people: state.numPeople, vibe: state.vibe,
+        partner_age_min: state.ageMin ? parseInt(state.ageMin) : null,
+        partner_age_max: state.ageMax ? parseInt(state.ageMax) : null,
+        message: state.message, expires_at: expires.toISOString(),
+      })
+    });
+  }
+
+  document.getElementById('formContent').style.display = 'none';
+  document.getElementById('successWrap').style.display = 'block';
+  document.querySelector('.bottom-nav').style.display = 'none';
+}
+</script>
+</body>
+</html>
